@@ -25,6 +25,12 @@ public class BabbleOsc
 
     private const int TimeoutMs = 10000;
 
+    public static float[] ExpressionBuffer = new float[UnifiedTracking.Data.Shapes.Length];
+
+    // 生のOpenness（BabbleVRCが使用する）
+    public static float LeftEyeOpenness = 1.0f;
+    public static float RightEyeOpenness = 1.0f;
+
     public BabbleOsc(ILogger iLogger, string host, int? port)
     {
         if (_receiver != null)
@@ -75,151 +81,152 @@ public class BabbleOsc
                     {
                         switch (oscMessage.Address)
                         {
-                            /* mouth params */ 
+                            // 使わないのもあるけど一旦全部入れておく
+                            /* mouth params */
                             case "/cheekPuffLeft":
-                                UnifiedTracking.Data.Shapes[(int)UnifiedExpressions.CheekPuffLeft].Weight = value;
+                                BabbleOsc.ExpressionBuffer[(int)UnifiedExpressions.CheekPuffLeft] = value;
                                 break;
                             case "/cheekPuffRight":
-                                UnifiedTracking.Data.Shapes[(int)UnifiedExpressions.CheekPuffRight].Weight = value;
+                                BabbleOsc.ExpressionBuffer[(int)UnifiedExpressions.CheekPuffRight] = value;
                                 break;
                             case "/cheekSuckLeft":
-                                UnifiedTracking.Data.Shapes[(int)UnifiedExpressions.CheekSuckLeft].Weight = value;
+                                BabbleOsc.ExpressionBuffer[(int)UnifiedExpressions.CheekSuckLeft] = value;
                                 break;
                             case "/cheekSuckRight":
-                                UnifiedTracking.Data.Shapes[(int)UnifiedExpressions.CheekSuckRight].Weight = value;
+                                BabbleOsc.ExpressionBuffer[(int)UnifiedExpressions.CheekSuckRight] = value;
                                 break;
                             case "/jawOpen":
-                                UnifiedTracking.Data.Shapes[(int)UnifiedExpressions.JawOpen].Weight = value;
+                                BabbleOsc.ExpressionBuffer[(int)UnifiedExpressions.JawOpen] = value;
                                 break;
                             case "/jawForward":
-                                UnifiedTracking.Data.Shapes[(int)UnifiedExpressions.JawForward].Weight = value;
+                                BabbleOsc.ExpressionBuffer[(int)UnifiedExpressions.JawForward]   = value;
                                 break;
                             case "/jawLeft":
-                                UnifiedTracking.Data.Shapes[(int)UnifiedExpressions.JawLeft].Weight = value;
+                                BabbleOsc.ExpressionBuffer[(int)UnifiedExpressions.JawLeft] = value;
                                 break;
                             case "/jawRight":
-                                UnifiedTracking.Data.Shapes[(int)UnifiedExpressions.JawRight].Weight = value;
+                                BabbleOsc.ExpressionBuffer[(int)UnifiedExpressions.JawRight] = value;
                                 break;
                             case "/noseSneerLeft":
-                                UnifiedTracking.Data.Shapes[(int)UnifiedExpressions.NoseSneerLeft].Weight = value;
+                                BabbleOsc.ExpressionBuffer[(int)UnifiedExpressions.NoseSneerLeft] = value;
                                 break;
                             case "/noseSneerRight":
-                                UnifiedTracking.Data.Shapes[(int)UnifiedExpressions.NoseSneerRight].Weight = value;
+                                BabbleOsc.ExpressionBuffer[(int)UnifiedExpressions.NoseSneerRight] = value;
                                 break;
                             case "/mouthFunnel":
-                                UnifiedTracking.Data.Shapes[(int)UnifiedExpressions.LipFunnelLowerLeft].Weight = value;
-                                UnifiedTracking.Data.Shapes[(int)UnifiedExpressions.LipFunnelLowerRight].Weight = value;
-                                UnifiedTracking.Data.Shapes[(int)UnifiedExpressions.LipFunnelUpperLeft].Weight = value;
-                                UnifiedTracking.Data.Shapes[(int)UnifiedExpressions.LipFunnelUpperRight].Weight = value;
+                                BabbleOsc.ExpressionBuffer[(int)UnifiedExpressions.LipFunnelLowerLeft] = value;
+                                BabbleOsc.ExpressionBuffer[(int)UnifiedExpressions.LipFunnelLowerRight] = value;
+                                BabbleOsc.ExpressionBuffer[(int)UnifiedExpressions.LipFunnelUpperLeft] = value;
+                                BabbleOsc.ExpressionBuffer[(int)UnifiedExpressions.LipFunnelUpperRight] = value;
                                 break;
                             case "/mouthPucker":
-                                UnifiedTracking.Data.Shapes[(int)UnifiedExpressions.LipPuckerLowerLeft].Weight = value;
-                                UnifiedTracking.Data.Shapes[(int)UnifiedExpressions.LipPuckerLowerRight].Weight = value;
-                                UnifiedTracking.Data.Shapes[(int)UnifiedExpressions.LipPuckerUpperLeft].Weight = value;
-                                UnifiedTracking.Data.Shapes[(int)UnifiedExpressions.LipPuckerUpperRight].Weight = value;
+                                BabbleOsc.ExpressionBuffer[(int)UnifiedExpressions.LipPuckerLowerLeft] = value;
+                                BabbleOsc.ExpressionBuffer[(int)UnifiedExpressions.LipPuckerLowerRight] = value;
+                                BabbleOsc.ExpressionBuffer[(int)UnifiedExpressions.LipPuckerUpperLeft] = value;
+                                BabbleOsc.ExpressionBuffer[(int)UnifiedExpressions.LipPuckerUpperRight] = value;
                                 break;
                             case "/mouthLeft":
-                                UnifiedTracking.Data.Shapes[(int)UnifiedExpressions.MouthUpperLeft].Weight = value;
-                                UnifiedTracking.Data.Shapes[(int)UnifiedExpressions.MouthLowerLeft].Weight = value;
+                                BabbleOsc.ExpressionBuffer[(int)UnifiedExpressions.MouthUpperLeft] = value;
+                                BabbleOsc.ExpressionBuffer[(int)UnifiedExpressions.MouthLowerLeft] = value;
                                 break;
                             case "/mouthRight":
-                                UnifiedTracking.Data.Shapes[(int)UnifiedExpressions.MouthUpperRight].Weight = value;
-                                UnifiedTracking.Data.Shapes[(int)UnifiedExpressions.MouthLowerRight].Weight = value;
+                                BabbleOsc.ExpressionBuffer[(int)UnifiedExpressions.MouthUpperRight] = value;
+                                BabbleOsc.ExpressionBuffer[(int)UnifiedExpressions.MouthLowerRight] = value;
                                 break;
                             case "/mouthRollUpper":
-                                UnifiedTracking.Data.Shapes[(int)UnifiedExpressions.LipSuckUpperLeft].Weight = value;
-                                UnifiedTracking.Data.Shapes[(int)UnifiedExpressions.LipSuckUpperRight].Weight = value;
+                                BabbleOsc.ExpressionBuffer[(int)UnifiedExpressions.LipSuckUpperLeft] = value;
+                                BabbleOsc.ExpressionBuffer[(int)UnifiedExpressions.LipSuckUpperRight] = value;
                                 break;
                             case "/mouthRollLower":
-                                UnifiedTracking.Data.Shapes[(int)UnifiedExpressions.LipSuckLowerLeft].Weight = value;
-                                UnifiedTracking.Data.Shapes[(int)UnifiedExpressions.LipSuckLowerRight].Weight = value;
+                                BabbleOsc.ExpressionBuffer[(int)UnifiedExpressions.LipSuckLowerLeft] = value;
+                                BabbleOsc.ExpressionBuffer[(int)UnifiedExpressions.LipSuckLowerRight] = value;
                                 break;
                             case "/mouthShrugUpper":
-                                UnifiedTracking.Data.Shapes[(int)UnifiedExpressions.MouthRaiserUpper].Weight = value;
+                                BabbleOsc.ExpressionBuffer[(int)UnifiedExpressions.MouthRaiserUpper] = value;
                                 break;
                             case "/mouthShrugLower":
-                                UnifiedTracking.Data.Shapes[(int)UnifiedExpressions.MouthRaiserLower].Weight = value;
+                                BabbleOsc.ExpressionBuffer[(int)UnifiedExpressions.MouthRaiserLower] = value;
                                 break;
                             case "/mouthClose":
-                                UnifiedTracking.Data.Shapes[(int)UnifiedExpressions.MouthClosed].Weight = value;
+                                BabbleOsc.ExpressionBuffer[(int)UnifiedExpressions.MouthClosed] = value;
                                 break;
                             case "/mouthSmileLeft":
-                                UnifiedTracking.Data.Shapes[(int)UnifiedExpressions.MouthCornerPullLeft].Weight = value;
+                                BabbleOsc.ExpressionBuffer[(int)UnifiedExpressions.MouthCornerPullLeft] = value;
                                 break;
                             case "/mouthSmileRight":
-                                UnifiedTracking.Data.Shapes[(int)UnifiedExpressions.MouthCornerPullRight].Weight = value;
+                                BabbleOsc.ExpressionBuffer[(int)UnifiedExpressions.MouthCornerPullRight] = value;
                                 break;
                             case "/mouthFrownLeft":
-                                UnifiedTracking.Data.Shapes[(int)UnifiedExpressions.MouthFrownLeft].Weight = value;
+                                BabbleOsc.ExpressionBuffer[(int)UnifiedExpressions.MouthFrownLeft] = value;
                                 break;
                             case "/mouthFrownRight":
-                                UnifiedTracking.Data.Shapes[(int)UnifiedExpressions.MouthFrownRight].Weight = value;
+                                BabbleOsc.ExpressionBuffer[(int)UnifiedExpressions.MouthFrownRight] = value;
                                 break;
                             case "/mouthDimpleLeft":
-                                UnifiedTracking.Data.Shapes[(int)UnifiedExpressions.MouthDimpleLeft].Weight = value;
+                                BabbleOsc.ExpressionBuffer[(int)UnifiedExpressions.MouthDimpleLeft] = value;
                                 break;
                             case "/mouthDimpleRight":
-                                UnifiedTracking.Data.Shapes[(int)UnifiedExpressions.MouthDimpleRight].Weight = value;
+                                BabbleOsc.ExpressionBuffer[(int)UnifiedExpressions.MouthDimpleRight] = value;
                                 break;
                             case "/mouthUpperUpLeft":
-                                UnifiedTracking.Data.Shapes[(int)UnifiedExpressions.MouthUpperUpLeft].Weight = value;
+                                BabbleOsc.ExpressionBuffer[(int)UnifiedExpressions.MouthUpperUpLeft] = value;
                                 break;
                             case "/mouthUpperUpRight":
-                                UnifiedTracking.Data.Shapes[(int)UnifiedExpressions.MouthUpperUpRight].Weight = value;
+                                BabbleOsc.ExpressionBuffer[(int)UnifiedExpressions.MouthUpperUpRight] = value;
                                 break;
                             case "/mouthLowerDownLeft":
-                                UnifiedTracking.Data.Shapes[(int)UnifiedExpressions.MouthLowerDownLeft].Weight = value;
+                                BabbleOsc.ExpressionBuffer[(int)UnifiedExpressions.MouthLowerDownLeft] = value;
                                 break;
                             case "/mouthLowerDownRight":
-                                UnifiedTracking.Data.Shapes[(int)UnifiedExpressions.MouthLowerDownRight].Weight = value;
+                                BabbleOsc.ExpressionBuffer[(int)UnifiedExpressions.MouthLowerDownRight] = value;
                                 break;
                             case "/mouthPressLeft":
-                                UnifiedTracking.Data.Shapes[(int)UnifiedExpressions.MouthPressLeft].Weight = value;
+                                BabbleOsc.ExpressionBuffer[(int)UnifiedExpressions.MouthPressLeft] = value;
                                 break;
                             case "/mouthPressRight":
-                                UnifiedTracking.Data.Shapes[(int)UnifiedExpressions.MouthPressRight].Weight = value;
+                                BabbleOsc.ExpressionBuffer[(int)UnifiedExpressions.MouthPressRight] = value;
                                 break;
                             case "/mouthStretchLeft":
-                                UnifiedTracking.Data.Shapes[(int)UnifiedExpressions.MouthStretchLeft].Weight = value;
+                                BabbleOsc.ExpressionBuffer[(int)UnifiedExpressions.MouthStretchLeft] = value;
                                 break;
                             case "/mouthStretchRight":
-                                UnifiedTracking.Data.Shapes[(int)UnifiedExpressions.MouthStretchRight].Weight = value;
+                                BabbleOsc.ExpressionBuffer[(int)UnifiedExpressions.MouthStretchRight] = value;
                                 break;
                             case "/tongueOut":
-                                UnifiedTracking.Data.Shapes[(int)UnifiedExpressions.TongueOut].Weight = value;
+                                BabbleOsc.ExpressionBuffer[(int)UnifiedExpressions.TongueOut] = value;
                                 break;
                             case "/tongueUp":
-                                UnifiedTracking.Data.Shapes[(int)UnifiedExpressions.TongueUp].Weight = value;
+                                BabbleOsc.ExpressionBuffer[(int)UnifiedExpressions.TongueUp] = value;
                                 break;
                             case "/tongueDown":
-                                UnifiedTracking.Data.Shapes[(int)UnifiedExpressions.TongueDown].Weight = value;
+                                BabbleOsc.ExpressionBuffer[(int)UnifiedExpressions.TongueDown] = value;
                                 break;
                             case "/tongueLeft":
-                                UnifiedTracking.Data.Shapes[(int)UnifiedExpressions.TongueLeft].Weight = value;
+                                BabbleOsc.ExpressionBuffer[(int)UnifiedExpressions.TongueLeft] = value;
                                 break;
                             case "/tongueRight":
-                                UnifiedTracking.Data.Shapes[(int)UnifiedExpressions.TongueRight].Weight = value;
+                                BabbleOsc.ExpressionBuffer[(int)UnifiedExpressions.TongueRight] = value;
                                 break;
                             case "/tongueRoll":
-                                UnifiedTracking.Data.Shapes[(int)UnifiedExpressions.TongueRoll].Weight = value;
+                                BabbleOsc.ExpressionBuffer[(int)UnifiedExpressions.TongueRoll] = value;
                                 break;
                             case "/tongueBendDown":
-                                UnifiedTracking.Data.Shapes[(int)UnifiedExpressions.TongueBendDown].Weight = value;
+                                BabbleOsc.ExpressionBuffer[(int)UnifiedExpressions.TongueBendDown] = value;
                                 break;
                             case "/tongueCurlUp":
-                                UnifiedTracking.Data.Shapes[(int)UnifiedExpressions.TongueCurlUp].Weight = value;
+                                BabbleOsc.ExpressionBuffer[(int)UnifiedExpressions.TongueCurlUp] = value;
                                 break;
                             case "/tongueSquish":
-                                UnifiedTracking.Data.Shapes[(int)UnifiedExpressions.TongueSquish].Weight = value;
+                                BabbleOsc.ExpressionBuffer[(int)UnifiedExpressions.TongueSquish] = value;
                                 break;
                             case "/tongueFlat":
-                                UnifiedTracking.Data.Shapes[(int)UnifiedExpressions.TongueFlat].Weight = value;
+                                BabbleOsc.ExpressionBuffer[(int)UnifiedExpressions.TongueFlat] = value;
                                 break;
                             case "/tongueTwistLeft":
-                                UnifiedTracking.Data.Shapes[(int)UnifiedExpressions.TongueTwistLeft].Weight = value;
+                                BabbleOsc.ExpressionBuffer[(int)UnifiedExpressions.TongueTwistLeft] = value;
                                 break;
                             case "/tongueTwistRight":
-                                UnifiedTracking.Data.Shapes[(int)UnifiedExpressions.TongueTwistRight].Weight = value;
+                                BabbleOsc.ExpressionBuffer[(int)UnifiedExpressions.TongueTwistRight] = value;
                                 break;
 
 
@@ -234,21 +241,21 @@ public class BabbleOsc
                                 break;
                             case "/LeftEyeLid":
                             case "/leftEyeLid":
-                                UnifiedTracking.Data.Eye.Left.Openness = value;
+                                LeftEyeOpenness = value;
                                 break;
                             case "/LeftEyeWiden":
                             case "/leftEyeWiden":
-                                UnifiedTracking.Data.Shapes[(int)UnifiedExpressions.EyeWideLeft].Weight = value;
-                                UnifiedTracking.Data.Shapes[(int)UnifiedExpressions.BrowOuterUpLeft].Weight = value;
-                                UnifiedTracking.Data.Shapes[(int)UnifiedExpressions.BrowInnerUpLeft].Weight = value;
+                                BabbleOsc.ExpressionBuffer[(int)UnifiedExpressions.EyeWideLeft] = value;
+                                BabbleOsc.ExpressionBuffer[(int)UnifiedExpressions.BrowOuterUpLeft] = value;
+                                BabbleOsc.ExpressionBuffer[(int)UnifiedExpressions.BrowInnerUpLeft] = value;
                                 break;
                             case "/LeftEyeSquint":
                             case "/leftEyeSquint":
-                                UnifiedTracking.Data.Shapes[(int)UnifiedExpressions.EyeSquintLeft].Weight = value;
+                                BabbleOsc.ExpressionBuffer[(int)UnifiedExpressions.EyeSquintLeft] = value;
                                 break;
                             case "/LeftEyeBrow":
                             case "/leftEyeBrow":
-                                UnifiedTracking.Data.Shapes[(int)UnifiedExpressions.BrowLowererLeft].Weight = value;
+                                BabbleOsc.ExpressionBuffer[(int)UnifiedExpressions.BrowLowererLeft] = value;
                                 break;
                             case "/RightEyeX":
                             case "/rightEyeX":
@@ -260,43 +267,43 @@ public class BabbleOsc
                                 break;
                             case "/RightEyeLid":
                             case "/rightEyeLid":
-                                UnifiedTracking.Data.Eye.Right.Openness = value;
+                                RightEyeOpenness = value;
                                 break;
                             case "/RightEyeWiden":
                             case "/rightEyeWiden":
-                                UnifiedTracking.Data.Shapes[(int)UnifiedExpressions.EyeWideRight].Weight = value;
-                                UnifiedTracking.Data.Shapes[(int)UnifiedExpressions.BrowOuterUpRight].Weight = value;
-                                UnifiedTracking.Data.Shapes[(int)UnifiedExpressions.BrowInnerUpRight].Weight = value;
+                                BabbleOsc.ExpressionBuffer[(int)UnifiedExpressions.EyeWideRight] = value;
+                                BabbleOsc.ExpressionBuffer[(int)UnifiedExpressions.BrowOuterUpRight] = value;
+                                BabbleOsc.ExpressionBuffer[(int)UnifiedExpressions.BrowInnerUpRight] = value;
                                 break;
                             case "/RightEyeSquint":
                             case "/rightEyeSquint":
-                                UnifiedTracking.Data.Shapes[(int)UnifiedExpressions.EyeSquintRight].Weight = value;
+                                BabbleOsc.ExpressionBuffer[(int)UnifiedExpressions.EyeSquintRight] = value;
                                 break;
                             case "/RightEyeBrow":
                             case "/rightEyeBrow":
-                                UnifiedTracking.Data.Shapes[(int)UnifiedExpressions.BrowLowererRight].Weight = value;
+                                BabbleOsc.ExpressionBuffer[(int)UnifiedExpressions.BrowLowererRight] = value;
                                 break;
 
                             /* combined eye params (single value driving both eyes) */
                             case "/CombinedEyeWiden":
                             case "/combinedEyeWiden":
-                                UnifiedTracking.Data.Shapes[(int)UnifiedExpressions.EyeWideLeft].Weight = value;
-                                UnifiedTracking.Data.Shapes[(int)UnifiedExpressions.BrowOuterUpLeft].Weight = value;
-                                UnifiedTracking.Data.Shapes[(int)UnifiedExpressions.BrowInnerUpLeft].Weight = value;
-                                UnifiedTracking.Data.Shapes[(int)UnifiedExpressions.EyeWideRight].Weight = value;
-                                UnifiedTracking.Data.Shapes[(int)UnifiedExpressions.BrowOuterUpRight].Weight = value;
-                                UnifiedTracking.Data.Shapes[(int)UnifiedExpressions.BrowInnerUpRight].Weight = value;
+                                BabbleOsc.ExpressionBuffer[(int)UnifiedExpressions.EyeWideLeft] = value;
+                                BabbleOsc.ExpressionBuffer[(int)UnifiedExpressions.BrowOuterUpLeft] = value;
+                                BabbleOsc.ExpressionBuffer[(int)UnifiedExpressions.BrowInnerUpLeft] = value;
+                                BabbleOsc.ExpressionBuffer[(int)UnifiedExpressions.EyeWideRight] = value;
+                                BabbleOsc.ExpressionBuffer[(int)UnifiedExpressions.BrowOuterUpRight] = value;
+                                BabbleOsc.ExpressionBuffer[(int)UnifiedExpressions.BrowInnerUpRight] = value;
 
                                 break;
                             case "/CombinedEyeSquint":
                             case "/combinedEyeSquint":
-                                UnifiedTracking.Data.Shapes[(int)UnifiedExpressions.EyeSquintLeft].Weight = value;
-                                UnifiedTracking.Data.Shapes[(int)UnifiedExpressions.EyeSquintRight].Weight = value;
+                                BabbleOsc.ExpressionBuffer[(int)UnifiedExpressions.EyeSquintLeft] = value;
+                                BabbleOsc.ExpressionBuffer[(int)UnifiedExpressions.EyeSquintRight] = value;
                                 break;
                             case "/CombinedEyeBrow":
                             case "/combinedEyeBrow":
-                                UnifiedTracking.Data.Shapes[(int)UnifiedExpressions.BrowLowererLeft].Weight = value;
-                                UnifiedTracking.Data.Shapes[(int)UnifiedExpressions.BrowLowererRight].Weight = value;
+                                BabbleOsc.ExpressionBuffer[(int)UnifiedExpressions.BrowLowererLeft] = value;
+                                BabbleOsc.ExpressionBuffer[(int)UnifiedExpressions.BrowLowererRight] = value;
                                 break;
                         }
                     }
