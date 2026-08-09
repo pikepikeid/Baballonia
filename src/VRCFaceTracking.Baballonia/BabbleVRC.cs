@@ -10,6 +10,7 @@ public class BabbleVrc : ExtTrackingModule
     private Config config;
     private bool needsEye;
     private bool needsExpression;
+    private BabbleExtraConfig extra;
 
     // 前フレームの Openness
     float prevLeftLid = 1f;
@@ -43,6 +44,7 @@ public class BabbleVrc : ExtTrackingModule
     public override (bool eyeSuccess, bool expressionSuccess) Initialize(bool eyeAvailable, bool expressionAvailable)
     {
         config = BabbleConfig.GetBabbleConfig();
+        extra = BabbleExtraConfig.Load();
         babbleOSC = new BabbleOsc(Logger, config.Host, config.Port);
 
         List<Stream> list = new List<Stream>();
@@ -158,7 +160,7 @@ public class BabbleVrc : ExtTrackingModule
                 if (pucker >= 0.6f && funnel <= 0.25f)
                     value *= 0.5f;
                 else
-                    value = Math.Min(value, 0.85f); // 最大値を0.85に制限
+                    value = Math.Min(value, extra.JawOpenMax); // 最大値を既定値0.85に制限
                 break;
 
             // 口をすぼめるときはMouthClosedを抑制する（要るかなぁこれ）
@@ -215,6 +217,7 @@ public class BabbleVrc : ExtTrackingModule
     private (float left, float right) CorrectEyes(float leftLid, float rightLid, float leftSquint, float rightSquint)
     {
         float Clamp01(float v) => MathF.Min(MathF.Max(v, 0f), 1f);
+        if (!extra.UseWinkLock) { return (Clamp01(leftLid), Clamp01(rightLid)); }
 
         // 補正前の生の値を取得（判定用）
         float rawLeft = BabbleOsc.LeftEyeOpenness;
@@ -365,6 +368,37 @@ public class BabbleVrc : ExtTrackingModule
         UnifiedTracking.Data.Eye.Left.Openness = left;
         UnifiedTracking.Data.Eye.Right.Openness = right;
     }
+
+    // 寄り目の修正
+    private void CorrectCrossEye()
+    {
+        if (!extra.PreventCrossEye)
+            return;
+
+        float leftEyeX = UnifiedTracking.Data.Eye.Left.Gaze.x;
+        float rightEyeX = UnifiedTracking.Data.Eye.Right.Gaze.x;
+
+        float convergence = leftEyeX - rightEyeX;
+        float divergence = rightEyeX - leftEyeX;
+
+        float correction = extra.CrossEyeStrength;
+
+
+        if (convergence > 0.8f)
+        {
+            leftEyeX *= correction;
+            rightEyeX *= correction;
+        }
+        if (divergence > 0.8f)
+        {
+            // 外向きすぎるので内側へ戻す
+            leftEyeX *= correction;
+            rightEyeX *= correction;
+        }
+
+        UnifiedTracking.Data.Eye.Left.Gaze.x = leftEyeX;
+        UnifiedTracking.Data.Eye.Right.Gaze.x = rightEyeX;
+    }
     public override void Update()
     {
         float[] raw = BabbleOsc.ExpressionBuffer;
@@ -381,5 +415,7 @@ public class BabbleVrc : ExtTrackingModule
 
         ApplyShapes(corrected);
         ApplyEyes(leftLid, rightLid);
+
+        CorrectCrossEye();
     }
 }

@@ -18,6 +18,9 @@
     <None Update="module.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+    <None Update="config.ini">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
 
   <ItemGroup>
@@ -59,6 +62,7 @@
       <FilesToZip Include="$(OutputPath)VRCFaceTracking.Baballonia.dll" />
       <FilesToZip Include="$(OutputPath)BabbleConfig.json" />
       <FilesToZip Include="$(OutputPath)module.json" />
+      <FilesToZip Include="$(OutputPath)config.ini" />
     </ItemGroup>
     
     <!-- Delete existing zip file if it exists -->
