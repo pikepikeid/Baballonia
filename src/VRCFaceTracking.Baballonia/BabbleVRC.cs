@@ -68,7 +68,7 @@ public class BabbleVrc : ExtTrackingModule
 
         ModuleInformation = new ModuleMetadata
         {
-            Name = "【Unofficial】Project Babble Module（Modified.3）",
+            Name = "【Unofficial】Project Babble Module（Modified.4）",
             StaticImages = list
         };
 
@@ -384,12 +384,12 @@ public class BabbleVrc : ExtTrackingModule
         float correction = extra.CrossEyeStrength;
 
 
-        if (convergence > 0.8f)
+        if (convergence > 0.3f)
         {
             leftEyeX *= correction;
             rightEyeX *= correction;
         }
-        if (divergence > 0.8f)
+        if (divergence > 0.6f)
         {
             // 外向きすぎるので内側へ戻す
             leftEyeX *= correction;
