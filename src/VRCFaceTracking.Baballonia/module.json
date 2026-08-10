@@ -1,16 +1,16 @@
 {
   "InstallationState": 0,
   "ModuleId": "cbb751d2-da77-4763-b631-0e8ab03a5773",
-  "LastUpdated": "2026-08-09T16:50:25.1349789+09:00",
-  "Version": "3.2.0-modified.2",
+  "LastUpdated": "2026-08-10T08:52:59.5608396+09:00",
+  "Version": "3.2.0-modified.3",
   "Downloads": 0,
   "Ratings": 0,
   "Rating": 0,
   "AuthorName": "dfgHiatus, pikepikeid(modifier)",
-  "ModuleName": "VRCFT-Babble",
+  "ModuleName": "Unofficial-VRCFT-Babble-Modified",
   "ModuleDescription": "【これは改変版モジュールです。本家へのバグ報告などに使用しないでください。】Project Babble eye and face tracking for VRCFaceTracking v5.",
   "UsageInstructions": "For complete instructions, please refer to the project page.",
-  "DownloadUrl": "https://github.com/pikepikeid/Baballonia/releases/download/Modified.2/VRCFaceTracking.Baballonia.zip",
+  "DownloadUrl": "https://github.com/pikepikeid/Baballonia/releases/download/Modified.3/VRCFaceTracking.Baballonia.Modified.zip",
   "ModulePageUrl": "https://github.com/pikepikeid/Baballonia",
-  "DllFileName": "VRCFaceTracking.Baballonia.dll"
+  "DllFileName": "VRCFaceTracking.Baballonia.Modified.dll"
 }

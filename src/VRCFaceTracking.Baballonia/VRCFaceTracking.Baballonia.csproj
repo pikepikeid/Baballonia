@@ -5,6 +5,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <Platforms>AnyCPU;x64</Platforms>
+    <AssemblyName>VRCFaceTracking.Baballonia.Modified</AssemblyName>
   </PropertyGroup>
 
   <ItemGroup>
@@ -59,7 +60,7 @@
     </PropertyGroup>
     
     <ItemGroup>
-      <FilesToZip Include="$(OutputPath)VRCFaceTracking.Baballonia.dll" />
+      <FilesToZip Include="$(OutputPath)VRCFaceTracking.Baballonia.Modified.dll" />
       <FilesToZip Include="$(OutputPath)BabbleConfig.json" />
       <FilesToZip Include="$(OutputPath)module.json" />
       <FilesToZip Include="$(OutputPath)config.ini" />
@@ -76,7 +77,7 @@
     
     <!-- Create zip from temp directory -->
     <ZipDirectory SourceDirectory="$(TempZipFolder)" 
-                  DestinationFile="$(OutputPath)VRCFaceTracking.Baballonia.zip" />
+                  DestinationFile="$(OutputPath)VRCFaceTracking.Baballonia.Modified.zip" />
     
     <!-- Clean up temp directory -->
     <RemoveDir Directories="$(TempZipFolder)" />

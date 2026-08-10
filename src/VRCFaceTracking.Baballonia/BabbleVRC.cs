@@ -68,7 +68,7 @@ public class BabbleVrc : ExtTrackingModule
 
         ModuleInformation = new ModuleMetadata
         {
-            Name = "Project Babble Module（Modified.1）",
+            Name = "【Unofficial】Project Babble Module（Modified.3）",
             StaticImages = list
         };
 
