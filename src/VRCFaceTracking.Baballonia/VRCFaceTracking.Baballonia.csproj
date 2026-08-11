@@ -15,11 +15,12 @@
   <ItemGroup>
     <EmbeddedResource Include="BabbleEyeLogo.png" />
     <None Remove="BabbleFaceLogo.png" />
+    <None Remove="config.ini" />
     <EmbeddedResource Include="BabbleFaceLogo.png" />
-    <None Update="module.json">
+    <EmbeddedResource Include="config.ini">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="config.ini">
+    </EmbeddedResource>
+    <None Update="module.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>
@@ -67,7 +68,7 @@
     </ItemGroup>
     
     <!-- Delete existing zip file if it exists -->
-    <Delete Files="$(OutputPath)VRCFaceTracking.Baballonia.zip" ContinueOnError="true" />
+    <Delete Files="$(OutputPath)VRCFaceTracking.Baballonia.Modified.zip" ContinueOnError="true" />
     
     <!-- Create temp directory -->
     <MakeDir Directories="$(TempZipFolder)" />
@@ -76,8 +77,7 @@
     <Copy SourceFiles="@(FilesToZip)" DestinationFolder="$(TempZipFolder)" />
     
     <!-- Create zip from temp directory -->
-    <ZipDirectory SourceDirectory="$(TempZipFolder)" 
-                  DestinationFile="$(OutputPath)VRCFaceTracking.Baballonia.Modified.zip" />
+    <ZipDirectory SourceDirectory="$(TempZipFolder)" DestinationFile="$(OutputPath)VRCFaceTracking.Baballonia.Modified.zip" />
     
     <!-- Clean up temp directory -->
     <RemoveDir Directories="$(TempZipFolder)" />

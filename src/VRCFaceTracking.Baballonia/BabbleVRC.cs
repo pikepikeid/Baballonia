@@ -26,17 +26,37 @@ public class BabbleVrc : ExtTrackingModule
     bool leftWinkLocked = false;
     bool rightWinkLocked = false;
 
-    // 設定値（調整可能）
-    const int WinkThresholdFrames = 3;
-    const int BlinkThresholdFrames = 2;
-    const int WinkReleaseFrames = 3;
-
+    // カウンタ周り
     int winkReleaseCounter = 0;
-
     bool winkJustReleased = false;
     int winkJustReleasedFrames = 0;
-    const int WinkJustReleasedIgnoreFrames = 2; // 2フレームだけ候補判定を無効化
 
+    // config.ini から読み込むパラメータ
+    private float WinkSquintClosed;
+    private float WinkSquintOpen;
+    private float BothClosedSquint;
+    private float BothOpenOpenness;
+    private float BlinkSquint;
+    private int WinkThresholdFrames;
+    private int BlinkThresholdFrames;
+    private int WinkReleaseFrames;
+    private int WinkJustReleasedIgnoreFrames;
+    private float BlinkLidThreshold; // これはオフセット
+    public void Initialize(BabbleExtraConfig extra)
+    {
+        WinkThresholdFrames = extra.WinkThresholdFrames;
+        BlinkThresholdFrames = extra.BlinkThresholdFrames;
+        WinkReleaseFrames = extra.WinkReleaseFrames;
+        WinkJustReleasedIgnoreFrames = extra.WinkJustReleasedIgnoreFrames;
+
+        WinkSquintClosed = extra.WinkSquintClosed;
+        WinkSquintOpen = extra.WinkSquintOpen;
+        BothClosedSquint = extra.BothClosedSquint;
+        BothOpenOpenness = extra.BothOpenOpenness;
+        BlinkSquint = extra.BlinkSquint;
+
+        BlinkLidThreshold = BothOpenOpenness + extra.BlinkLidThresholdOffset; // これはオフセット
+    }
 
     // We need to call GetBabbleConfig ahead of Initialize
     public override (bool SupportsEye, bool SupportsExpression) Supported => (true, true);
@@ -44,8 +64,9 @@ public class BabbleVrc : ExtTrackingModule
     public override (bool eyeSuccess, bool expressionSuccess) Initialize(bool eyeAvailable, bool expressionAvailable)
     {
         config = BabbleConfig.GetBabbleConfig();
-        extra = BabbleExtraConfig.Load();
+        extra = BabbleExtraConfig.Load(Logger);
         babbleOSC = new BabbleOsc(Logger, config.Host, config.Port);
+        Initialize(extra);
 
         List<Stream> list = new List<Stream>();
         Assembly executingAssembly = Assembly.GetExecutingAssembly();
@@ -68,7 +89,7 @@ public class BabbleVrc : ExtTrackingModule
 
         ModuleInformation = new ModuleMetadata
         {
-            Name = "【Unofficial】Project Babble Module（Modified.4）",
+            Name = "【Unofficial】Project Babble Module（Modified.5）",
             StaticImages = list
         };
 
@@ -222,17 +243,17 @@ public class BabbleVrc : ExtTrackingModule
         // 補正前の生の値を取得（判定用）
         float rawLeft = BabbleOsc.LeftEyeOpenness;
         float rawRight = BabbleOsc.RightEyeOpenness;
-        // 左右のSquintが0.99以上なら両目を閉じているとみなす
-        bool bothClosed = leftSquint >= 0.99f && rightSquint >= 0.99f;
+        // 左右のSquintが0.99（デフォルト値）以上なら両目を閉じているとみなす
+        bool bothClosed = leftSquint >= BothClosedSquint && rightSquint >= BothClosedSquint;
         // 両目を閉じてない場合にウィンク候補を判定
         bool leftWinkCandidate =
-            leftSquint >= 0.85f &&
-            rightSquint <= 0.5f &&
+            leftSquint >= WinkSquintClosed &&
+            rightSquint <= WinkSquintOpen &&
             !bothClosed;
 
         bool rightWinkCandidate =
-            rightSquint >= 0.85f &&
-            leftSquint <= 0.5f &&
+            rightSquint >= WinkSquintClosed &&
+            leftSquint <= WinkSquintOpen &&
             !bothClosed;
 
         // ロック中・解除直後は候補を無効化
@@ -262,16 +283,16 @@ public class BabbleVrc : ExtTrackingModule
         // ウィンクロック中の処理
         if (winkLocked)
         {
-            // 両目のOpennessが0.45以上、かつ両目のSquintが0.1未満なら両目を開けていると判定
+            // 両目のOpennessが0.45以上、かつ両目のSquintが0.1未満なら両目を開けていると判定（デフォルト値）
             bool bothOpen =
-                rawLeft > 0.45f &&
-                rawRight > 0.45f &&
-                leftSquint < 0.1f &&
-                rightSquint < 0.1f;
+                rawLeft > BothOpenOpenness &&
+                rawRight > BothOpenOpenness &&
+                leftSquint < BlinkSquint &&
+                rightSquint < BlinkSquint;
 
             if (bothOpen)
             {
-                // 両目を開いている状態で一定フレーム数（既定3）経過したらウィンクロックを解除
+                // 両目を開いている状態で一定フレーム数経過したらウィンクロックを解除
                 winkReleaseCounter++;
                 if (winkReleaseCounter >= WinkReleaseFrames)
                 {
@@ -297,14 +318,14 @@ public class BabbleVrc : ExtTrackingModule
                     leftLid = 0f;
 
                     // 右目が瞬きしている場合は瞬きとして扱う
-                    bool rightBlink = rightSquint > 0.2f && rightLid < 0.5f;
+                    bool rightBlink = rightSquint > BlinkSquint && rightLid < BlinkLidThreshold;
                     if (rightBlink) rightLid = 0f;
                 }
                 else if (rightWinkLocked)
                 {
                     rightLid = 0f;
 
-                    bool leftBlink = leftSquint > 0.2f && leftLid < 0.5f;
+                    bool leftBlink = leftSquint > BlinkSquint && leftLid < BlinkLidThreshold;
                     if (leftBlink) leftLid = 0f;
                 }
             }
@@ -317,10 +338,10 @@ public class BabbleVrc : ExtTrackingModule
 
         // ウィンクロックされていないときの瞬き判定
         bool blinkCandidate =
-            leftSquint > 0.2f &&
-            rightSquint > 0.2f &&
-            leftLid < 0.5f &&
-            rightLid < 0.5f;
+            leftSquint > BlinkSquint &&
+            rightSquint > BlinkSquint &&
+            leftLid < BlinkLidThreshold &&
+            rightLid < BlinkLidThreshold;
 
         // ウィンク解除直後は瞬き候補も無効化して再ロック・誤検出を防ぐ
         if (winkJustReleased)
