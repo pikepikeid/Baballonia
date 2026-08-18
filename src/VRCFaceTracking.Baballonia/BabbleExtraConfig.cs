@@ -7,9 +7,17 @@ public class BabbleExtraConfig
 {
     // 設定値のデフォルト値
     private const bool DEFAULT_PreventCrossEye = true;
-    private const float DEFAULT_CrossEyeStrength = 0.7f;
+    private const float DEFAULT_CrossEyeStrength = 0.5f;
     private const bool DEFAULT_UseWinkLock = true;
+    private const float DEFAULT_PuckerJawOpenSuppression = 0.2f;
     private const float DEFAULT_JawOpenMax = 0.9f;
+    private const int DEFAULT_SymmetricMode = 0; // 0=Max, 1=Average, 2=Min
+
+    private const bool DEFAULT_UseEyeWide = true;
+    private const bool DEFAULT_UseEyeWideCorrection = true;
+    private const float DEFAULT_EyeWideLimit = 1.0f;
+    private const bool DEFAULT_UseLidSync = true;
+    private const float DEFAULT_SquintStrength = 0.5f;
 
     private const float DEFAULT_WinkSquintClosed = 0.85f;
     private const float DEFAULT_WinkSquintOpen = 0.5f;
@@ -26,7 +34,14 @@ public class BabbleExtraConfig
     public bool PreventCrossEye { get; private set; } = DEFAULT_PreventCrossEye;
     public float CrossEyeStrength { get; private set; } = DEFAULT_CrossEyeStrength;
     public bool UseWinkLock { get; private set; } = DEFAULT_UseWinkLock;
+    public float PuckerJawOpenSuppression { get; private set; } = DEFAULT_PuckerJawOpenSuppression;
     public float JawOpenMax { get; private set; } = DEFAULT_JawOpenMax;
+    public int SymmetricMode { get; private set; } = DEFAULT_SymmetricMode;
+    public bool UseEyeWide { get; private set; } = DEFAULT_UseEyeWide;
+    public bool UseEyeWideCorrection { get; private set; } = DEFAULT_UseEyeWideCorrection;
+    public float EyeWideLimit { get; private set; } = DEFAULT_EyeWideLimit;
+    public bool UseLidSync { get; private set; } = DEFAULT_UseLidSync;
+    public float SquintStrength { get; private set; } = DEFAULT_SquintStrength;
 
     public float WinkSquintClosed { get; private set; } = DEFAULT_WinkSquintClosed;
     public float WinkSquintOpen { get; private set; } = DEFAULT_WinkSquintOpen;
@@ -89,10 +104,36 @@ public class BabbleExtraConfig
                     case "UseWinkLock":
                         cfg.UseWinkLock = bool.Parse(val);
                         break;
+                    case "PuckerJawOpenSuppression":
+                        cfg.PuckerJawOpenSuppression = float.Parse(val);
+                        break;
 
                     case "JawOpenMax":
                         cfg.JawOpenMax = float.Parse(val);
                         break;
+
+                    case "SymmetricMode":
+                        cfg.SymmetricMode = int.Parse(val);
+                        break;
+
+                    case "UseEyeWide":
+                        cfg.UseEyeWide = bool.Parse(val);
+                        break;
+
+                    case "UseEyeWideCorrection":
+                        cfg.UseEyeWideCorrection = bool.Parse(val);
+                        break;
+
+                    case "EyeWideLimit":
+                        cfg.EyeWideLimit = float.Parse(val);
+                        break;
+                    case "UseLidSync":
+                        cfg.UseLidSync = bool.Parse(val);
+                        break;
+                    case "SquintStrength":
+                        cfg.SquintStrength = float.Parse(val);
+                        break;
+
                     case "WinkSquintClosed":
                         cfg.WinkSquintClosed = float.Parse(val);
                         break;
@@ -150,10 +191,17 @@ public class BabbleExtraConfig
     private void PrintConfig(ILogger logger)
     {
         logger.LogInformation("===== BabbleExtraConfig Loaded =====");
+        logger.LogInformation($"SymmetricMode = {SymmetricMode}");
         logger.LogInformation($"PreventCrossEye = {PreventCrossEye}");
         logger.LogInformation($"CrossEyeStrength = {CrossEyeStrength}");
         logger.LogInformation($"UseWinkLock = {UseWinkLock}");
+        logger.LogInformation($"PuckerJawOpenSuppression = {PuckerJawOpenSuppression}");
         logger.LogInformation($"JawOpenMax = {JawOpenMax}");
+        logger.LogInformation($"UseEyeWide = {UseEyeWide}");
+        logger.LogInformation($"UseEyeWideCorrection = {UseEyeWideCorrection}");
+        logger.LogInformation($"EyeWideLimit = {EyeWideLimit}");
+        logger.LogInformation($"UseLidSync = {UseLidSync}");
+        logger.LogInformation($"SquintStrength = {SquintStrength}");
 
         logger.LogInformation($"WinkSquintClosed = {WinkSquintClosed}");
         logger.LogInformation($"WinkSquintOpen = {WinkSquintOpen}");

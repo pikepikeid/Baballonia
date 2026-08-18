@@ -4,6 +4,12 @@ using VRCFaceTracking.Core.Params.Expressions;
 
 namespace VRCFaceTracking.Baballonia;
 
+public enum SymmetricMode
+{
+    Max = 0,
+    Avg = 1,
+    Min = 2
+}
 public class BabbleVrc : ExtTrackingModule
 {
     private BabbleOsc babbleOSC;
@@ -11,6 +17,9 @@ public class BabbleVrc : ExtTrackingModule
     private bool needsEye;
     private bool needsExpression;
     private BabbleExtraConfig extra;
+    private static readonly UnifiedExpressions[] AllExprs =
+    (UnifiedExpressions[])Enum.GetValues(typeof(UnifiedExpressions));
+
 
     // 前フレームの Openness
     float prevLeftLid = 1f;
@@ -32,6 +41,9 @@ public class BabbleVrc : ExtTrackingModule
     int winkJustReleasedFrames = 0;
 
     // config.ini から読み込むパラメータ
+    private SymmetricMode mouthMode;
+    private float PuckerJawOpenSuppression;
+    private float JawOpenMax;
     private float WinkSquintClosed;
     private float WinkSquintOpen;
     private float BothClosedSquint;
@@ -41,9 +53,19 @@ public class BabbleVrc : ExtTrackingModule
     private int BlinkThresholdFrames;
     private int WinkReleaseFrames;
     private int WinkJustReleasedIgnoreFrames;
+    private float SquintStrength;
     private float BlinkLidThreshold; // これはオフセット
     public void Initialize(BabbleExtraConfig extra)
     {
+        mouthMode = extra.SymmetricMode switch
+        {
+            1 => SymmetricMode.Avg,
+            2 => SymmetricMode.Min,
+            _ => SymmetricMode.Max
+        };
+        PuckerJawOpenSuppression = extra.PuckerJawOpenSuppression;
+        JawOpenMax = extra.JawOpenMax;
+
         WinkThresholdFrames = extra.WinkThresholdFrames;
         BlinkThresholdFrames = extra.BlinkThresholdFrames;
         WinkReleaseFrames = extra.WinkReleaseFrames;
@@ -54,6 +76,8 @@ public class BabbleVrc : ExtTrackingModule
         BothClosedSquint = extra.BothClosedSquint;
         BothOpenOpenness = extra.BothOpenOpenness;
         BlinkSquint = extra.BlinkSquint;
+
+        SquintStrength = extra.SquintStrength;
 
         BlinkLidThreshold = BothOpenOpenness + extra.BlinkLidThresholdOffset; // これはオフセット
     }
@@ -89,7 +113,7 @@ public class BabbleVrc : ExtTrackingModule
 
         ModuleInformation = new ModuleMetadata
         {
-            Name = "【Unofficial】Project Babble Module（Modified.5）",
+            Name = "【Unofficial】Project Babble Module（Modified.6）",
             StaticImages = list
         };
 
@@ -102,14 +126,9 @@ public class BabbleVrc : ExtTrackingModule
     }
 
     // 口の補正
-    private float[] CorrectMouth(float[] raw)
-    {
-        float[] corrected = new float[raw.Length];
-        Array.Copy(raw, corrected, raw.Length);
-        // 左右対称化するパラメータ
-        var symmetricPairs = new (UnifiedExpressions L, UnifiedExpressions R)[]
+    // 左右対称化するパラメータ
+    private static readonly (UnifiedExpressions L, UnifiedExpressions R)[] SymmetricPairs =
         {
-            (UnifiedExpressions.NoseSneerLeft, UnifiedExpressions.NoseSneerRight),
             (UnifiedExpressions.MouthCornerPullLeft, UnifiedExpressions.MouthCornerPullRight),
             (UnifiedExpressions.MouthFrownLeft, UnifiedExpressions.MouthFrownRight),
             (UnifiedExpressions.MouthDimpleLeft, UnifiedExpressions.MouthDimpleRight),
@@ -118,31 +137,46 @@ public class BabbleVrc : ExtTrackingModule
             (UnifiedExpressions.MouthPressLeft, UnifiedExpressions.MouthPressRight),
             (UnifiedExpressions.MouthStretchLeft, UnifiedExpressions.MouthStretchRight),
         };
-
+    private float[] CorrectMouth(float[] raw)
+    {
+        float[] corrected = new float[raw.Length];
+        Array.Copy(raw, corrected, raw.Length);
+        
         float GetSymmetric(UnifiedExpressions l, UnifiedExpressions r)
-            => MathF.Max(raw[(int)l], raw[(int)r]);
+        {
+            float lv = raw[(int)l];
+            float rv = raw[(int)r];
+
+            return mouthMode switch
+            {
+                SymmetricMode.Avg => (lv + rv) * 0.5f,
+                SymmetricMode.Min => MathF.Min(lv, rv),
+                _ => MathF.Max(lv, rv)
+            };
+        }
 
         // よく使うパラメータ
         float jawOpen = raw[(int)UnifiedExpressions.JawOpen];
-        float pucker = Math.Max(
-            Math.Max(raw[(int)UnifiedExpressions.LipPuckerLowerLeft], raw[(int)UnifiedExpressions.LipPuckerLowerRight]),
-            Math.Max(raw[(int)UnifiedExpressions.LipPuckerUpperLeft], raw[(int)UnifiedExpressions.LipPuckerUpperRight])
+        float pucker = MathF.Max(
+            MathF.Max(raw[(int)UnifiedExpressions.LipPuckerLowerLeft], raw[(int)UnifiedExpressions.LipPuckerLowerRight]),
+            MathF.Max(raw[(int)UnifiedExpressions.LipPuckerUpperLeft], raw[(int)UnifiedExpressions.LipPuckerUpperRight])
         );
-        float funnel = Math.Max(
-            Math.Max(raw[(int)UnifiedExpressions.LipFunnelLowerLeft], raw[(int)UnifiedExpressions.LipFunnelLowerRight]),
-            Math.Max(raw[(int)UnifiedExpressions.LipFunnelUpperLeft], raw[(int)UnifiedExpressions.LipFunnelUpperRight])
+        float funnel = MathF.Max(
+            MathF.Max(raw[(int)UnifiedExpressions.LipFunnelLowerLeft], raw[(int)UnifiedExpressions.LipFunnelLowerRight]),
+            MathF.Max(raw[(int)UnifiedExpressions.LipFunnelUpperLeft], raw[(int)UnifiedExpressions.LipFunnelUpperRight])
         );
         float stretch = GetSymmetric(UnifiedExpressions.MouthStretchLeft, UnifiedExpressions.MouthStretchRight);
         float lowerDown = GetSymmetric(UnifiedExpressions.MouthLowerDownLeft, UnifiedExpressions.MouthLowerDownRight);
         float upperUp = GetSymmetric(UnifiedExpressions.MouthUpperUpLeft, UnifiedExpressions.MouthUpperUpRight);
         float smile = GetSymmetric(UnifiedExpressions.MouthCornerPullLeft, UnifiedExpressions.MouthCornerPullRight);
         float raiserLower = raw[(int)UnifiedExpressions.MouthRaiserLower];
-        
-        foreach (UnifiedExpressions expr in Enum.GetValues(typeof(UnifiedExpressions)))
+        float mouthpress = GetSymmetric(UnifiedExpressions.MouthPressLeft, UnifiedExpressions.MouthPressRight);
+
+        foreach (UnifiedExpressions expr in AllExprs)
         {
             float value = raw[(int)expr];
 
-            foreach (var (L, R) in symmetricPairs)
+            foreach (var (L, R) in SymmetricPairs)
             {
                 if (expr == L || expr == R)
                 {
@@ -151,7 +185,7 @@ public class BabbleVrc : ExtTrackingModule
                 }
             }
 
-            value = CorrectMouthExpression(expr, value, jawOpen, pucker, funnel, stretch, lowerDown, upperUp, smile, raiserLower);
+            value = CorrectMouthExpression(expr, value, jawOpen, pucker, funnel, stretch, lowerDown, upperUp, smile, raiserLower, mouthpress);
             corrected[(int)expr] = value;
         }
 
@@ -162,26 +196,29 @@ public class BabbleVrc : ExtTrackingModule
         UnifiedExpressions expr, float value,
         float jawOpen, float pucker, float funnel,
         float stretch, float lowerDown, float upperUp,
-        float smile, float raiserLower)
+        float smile, float raiserLower, float mouthpress)
     {
         switch (expr)
         {
             // 口を開けている時や笑っているときは口角下げを抑制したり無効にする
+            // 口を開けていても横に広げて口角を下げる場合は場合は強調する
             case UnifiedExpressions.MouthFrownLeft:
             case UnifiedExpressions.MouthFrownRight:
-                value = Math.Min(value + raiserLower, 1.0f);
+                value = MathF.Min(value + raiserLower, 1.0f);
                 if (jawOpen >= 0.3f)
-                    value = Math.Min(value * 1.5f, 1.0f);
-                if (upperUp >= 0.8f && jawOpen < 0.3f)
+                    value = MathF.Min(value * 1.5f, 1.0f);
+                if (jawOpen >= 0.3f && stretch >= 0.3f)
+                    value = MathF.Min(value * 1.3f, 1.0f);
+                if (smile >= 0.8f && jawOpen < 0.3f)
                     value = 0f;
                 break;
 
             // 口をすぼめるときはJawOpenを抑制する
             case UnifiedExpressions.JawOpen:
                 if (pucker >= 0.6f && funnel <= 0.25f)
-                    value *= 0.5f;
+                    value *= PuckerJawOpenSuppression;
                 else
-                    value = Math.Min(value, extra.JawOpenMax); // 最大値を既定値0.85に制限
+                    value = MathF.Min(value, JawOpenMax); // 最大値を既定値0.85に制限
                 break;
 
             // 口をすぼめるときはMouthClosedを抑制する（要るかなぁこれ）
@@ -217,7 +254,7 @@ public class BabbleVrc : ExtTrackingModule
                     value = 0f;
                 break;
 
-            // 口を開けている時に悲しい表情が出やすいのを抑制する
+            // 単に口を開けているだけの時に悲しい表情が出やすいのを抑制する
             case UnifiedExpressions.MouthLowerDownLeft:
             case UnifiedExpressions.MouthLowerDownRight:
                 if (jawOpen >= 0.3f && stretch < 0.2f)
@@ -230,7 +267,6 @@ public class BabbleVrc : ExtTrackingModule
                     value = 0f;
                 break;
         }
-
         return value;
     }
 
@@ -243,6 +279,7 @@ public class BabbleVrc : ExtTrackingModule
         // 補正前の生の値を取得（判定用）
         float rawLeft = BabbleOsc.LeftEyeOpenness;
         float rawRight = BabbleOsc.RightEyeOpenness;
+
         // 左右のSquintが0.99（デフォルト値）以上なら両目を閉じているとみなす
         bool bothClosed = leftSquint >= BothClosedSquint && rightSquint >= BothClosedSquint;
         // 両目を閉じてない場合にウィンク候補を判定
@@ -372,12 +409,57 @@ public class BabbleVrc : ExtTrackingModule
             if (winkJustReleasedFrames >= WinkJustReleasedIgnoreFrames)
                 winkJustReleased = false;
         }
+        // Squintが強いほどOpennessを下げる
+        if (!winkLocked && !leftWinkCandidate && !rightWinkCandidate && !isBlink)
+        {
+            leftLid *= (1f - leftSquint * SquintStrength);
+            rightLid *= (1f - rightSquint * SquintStrength);
+        }
+        // ウィンクロックされていないときは、左右の目のOpennessを同期させる
+        if (extra.UseLidSync && !winkLocked && !leftWinkCandidate && !rightWinkCandidate)
+        {
+            float maxLid = MathF.Max(leftLid, rightLid);
+
+            // 閉じ側は同期しない
+            if (leftLid >= BothOpenOpenness)
+                leftLid = maxLid;
+
+            if (rightLid >= BothOpenOpenness)
+                rightLid = maxLid;
+        }
 
         return (Clamp01(leftLid), Clamp01(rightLid));
 
     }
 
     // 出力
+    private void CorrectWideEyes(float[] raw, float[] corrected)
+    {
+        // EyeWide 補正
+        float rawWideL = raw[(int)UnifiedExpressions.EyeWideLeft];
+        float rawWideR = raw[(int)UnifiedExpressions.EyeWideRight];
+
+        float wideL = rawWideL;
+        float wideR = rawWideR;
+
+        if (!extra.UseEyeWide)
+        {
+            wideL = 0f;
+            wideR = 0f;
+        }
+        else if (extra.UseEyeWideCorrection)
+        {
+            // 最小値を採用して左右のEyeWideを揃える
+            float minWide = MathF.Min(rawWideL, rawWideR);
+            float limitedWide = MathF.Min(minWide, extra.EyeWideLimit);
+            wideL = limitedWide;
+            wideR = limitedWide;
+        }
+
+        // 出力に反映
+        corrected[(int)UnifiedExpressions.EyeWideLeft] = wideL;
+        corrected[(int)UnifiedExpressions.EyeWideRight] = wideR;
+    }
     private void ApplyShapes(float[] corrected)
     {
         for (int i = 0; i < corrected.Length; i++)
@@ -431,6 +513,8 @@ public class BabbleVrc : ExtTrackingModule
 
         float leftSquint = raw[(int)UnifiedExpressions.EyeSquintLeft];
         float rightSquint = raw[(int)UnifiedExpressions.EyeSquintRight];
+
+        CorrectWideEyes(raw, corrected);
 
         (leftLid, rightLid) = CorrectEyes(leftLid, rightLid, leftSquint, rightSquint);
 
