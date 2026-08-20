@@ -43,6 +43,8 @@ public class BabbleVrc : ExtTrackingModule
     // config.ini から読み込むパラメータ
     private SymmetricMode mouthMode;
     private float PuckerJawOpenSuppression;
+    private float JawOpenPuckerThreshold;
+    private float JawOpenFunnelThreshold;
     private float JawOpenMax;
     private float WinkSquintClosed;
     private float WinkSquintOpen;
@@ -64,6 +66,8 @@ public class BabbleVrc : ExtTrackingModule
             _ => SymmetricMode.Max
         };
         PuckerJawOpenSuppression = extra.PuckerJawOpenSuppression;
+        JawOpenPuckerThreshold = extra.JawOpenPuckerThreshold;
+        JawOpenFunnelThreshold = extra.JawOpenFunnelThreshold;
         JawOpenMax = extra.JawOpenMax;
 
         WinkThresholdFrames = extra.WinkThresholdFrames;
@@ -113,7 +117,7 @@ public class BabbleVrc : ExtTrackingModule
 
         ModuleInformation = new ModuleMetadata
         {
-            Name = "【Unofficial】Project Babble Module（Modified.6）",
+            Name = "【Unofficial】Project Babble Module（Modified.7）",
             StaticImages = list
         };
 
@@ -215,7 +219,7 @@ public class BabbleVrc : ExtTrackingModule
 
             // 口をすぼめるときはJawOpenを抑制する
             case UnifiedExpressions.JawOpen:
-                if (pucker >= 0.6f && funnel <= 0.25f)
+                if (pucker >= JawOpenPuckerThreshold && funnel <= JawOpenFunnelThreshold) // 規定値 0.6f, 0.25f
                     value *= PuckerJawOpenSuppression;
                 else
                     value = MathF.Min(value, JawOpenMax); // 最大値を既定値0.85に制限
@@ -274,6 +278,8 @@ public class BabbleVrc : ExtTrackingModule
     private (float left, float right) CorrectEyes(float leftLid, float rightLid, float leftSquint, float rightSquint)
     {
         float Clamp01(float v) => MathF.Min(MathF.Max(v, 0f), 1f);
+        // 左右の最小値を先に揃える
+        float minLid = MathF.Min(leftLid, rightLid);
         if (!extra.UseWinkLock) { return (Clamp01(leftLid), Clamp01(rightLid)); }
 
         // 補正前の生の値を取得（判定用）
@@ -375,10 +381,9 @@ public class BabbleVrc : ExtTrackingModule
 
         // ウィンクロックされていないときの瞬き判定
         bool blinkCandidate =
-            leftSquint > BlinkSquint &&
-            rightSquint > BlinkSquint &&
-            leftLid < BlinkLidThreshold &&
-            rightLid < BlinkLidThreshold;
+            leftSquint < BlinkSquint &&
+            rightSquint < BlinkSquint &&
+            minLid < BlinkLidThreshold;
 
         // ウィンク解除直後は瞬き候補も無効化して再ロック・誤検出を防ぐ
         if (winkJustReleased)
